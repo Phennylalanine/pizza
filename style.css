@@ -1,0 +1,57 @@
+body {
+  margin: 0;
+  background: #faf8ef;
+  font-family: Arial, sans-serif;
+}
+
+#app {
+  display: flex;
+  height: 100vh;
+}
+
+#pizza-area {
+  flex: 2;
+  position: relative;
+  background: #f2efe5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-right: 3px solid #e0d9c9;
+}
+
+#pizza-base {
+  width: 70%;
+  max-width: 500px;
+  pointer-events: none;
+}
+
+#topping-container img {
+  position: absolute;
+  width: 80px;
+  cursor: move;
+  user-select: none;
+}
+
+#ingredients-panel {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: #fff7e6;
+}
+
+#ingredients-panel h2 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.ingredient img {
+  width: 100px;
+  display: block;
+  margin: 10px auto;
+  cursor: grab;
+  user-select: none;
+  border: 2px solid #f0d8a8;
+  background: white;
+  border-radius: 10px;
+  padding: 5px;
+}
