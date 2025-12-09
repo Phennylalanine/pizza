@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pizza Builder</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app">
+  <div id="pizza-area">
+    <img id="pizza-base" src="images/pizza-base.png" alt="Pizza Base" />
+    <div id="topping-container"></div>
+  </div>
+
+  <div id="ingredients-panel">
+    <h2>Ingredients</h2>
+
+    <div class="ingredient">
+      <img src="images/tomato.png" draggable="true" data-name="tomato" />
+    </div>
+
+    <div class="ingredient">
+      <img src="images/cheese.png" draggable="true" data-name="cheese" />
+    </div>
+
+    <div class="ingredient">
+      <img src="images/pepperoni.png" draggable="true" data-name="pepperoni" />
+    </div>
+
+    <!-- Add as many as you want -->
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
