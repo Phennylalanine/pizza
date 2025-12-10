@@ -55,3 +55,64 @@ body {
   border-radius: 10px;
   padding: 5px;
 }
+
+/* Ingredients panel grid layout
+   - Change --ingredient-cols to 2 or 3 (or any number) to control items per row
+   - This keeps the panel's size unchanged and only changes the internal layout
+*/
+
+:root {
+  /* Set default columns here: 2 or 3 */
+  --ingredient-cols: 3;
+  --ingredient-gap: 10px;
+}
+
+/* Basic reset / layout (add or merge with your existing styles) */
+* { box-sizing: border-box; }
+
+#app {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* Keep pizza-area behavior as-is */
+#pizza-area {
+  /* leave existing sizing untouched */
+}
+
+/* Ingredients panel becomes a grid; width is not changed here */
+#ingredients-panel {
+  display: grid;
+  grid-template-columns: repeat(var(--ingredient-cols), 1fr);
+  gap: var(--ingredient-gap);
+  align-items: center;
+  padding: 12px;
+  /* preserve current panel width — don't set width here if you already have one
+     If you need an explicit width, add it, but I left it out so it uses your current layout. */
+}
+
+/* Center each ingredient inside its grid cell */
+.ingredient {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+}
+
+/* Make the images responsive inside each cell and keep them visually consistent */
+.ingredient img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  width: 72px;          /* tweak this to increase/decrease image size */
+  object-fit: contain;
+  cursor: grab;
+  user-select: none;
+}
+
+/* smaller screens: reduce columns so things remain usable */
+@media (max-width: 480px) {
+  :root { --ingredient-cols: 2; }
+  .ingredient img { width: 56px; }
+}
