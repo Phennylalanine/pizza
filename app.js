@@ -1,5 +1,6 @@
 const toppingContainer = document.getElementById("topping-container");
 const pizzaArea = document.getElementById("pizza-area");
+const ingredientsPanel = document.getElementById("ingredients-panel");
 
 let draggedIngredient = null;
 
@@ -142,6 +143,13 @@ function drag(e) {
 }
 
 function stopDrag() {
+    if (activeTopping) {
+        // If the center of the topping is inside the ingredients panel, remove it.
+        if (isCenterInsideElement(activeTopping, ingredientsPanel)) {
+            activeTopping.remove();
+        }
+    }
+
     activeTopping = null;
     document.removeEventListener("mousemove", drag);
     document.removeEventListener("mouseup", stopDrag);
@@ -217,6 +225,7 @@ function addTouchGestureHandlers(elem) {
     }, {passive: false});
 
     elem.addEventListener("touchend", (ev) => {
+        // if gesture ended, optionally snap rotation to nice angles for kids
         if (SNAP_ON_END && ongoing.mode === "gesture") {
             let rotation = parseFloat(elem.dataset.rotation || "0");
             rotation = Math.round(rotation / ROTATION_SNAP_DEGREES) * ROTATION_SNAP_DEGREES;
@@ -225,12 +234,19 @@ function addTouchGestureHandlers(elem) {
             elem.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
         }
 
+        // If user finished a drag (no remaining touches), check whether to delete.
         if (ev.touches.length === 0) {
+            if (ongoing.mode === "drag") {
+                if (isCenterInsideElement(elem, ingredientsPanel)) {
+                    elem.remove();
+                }
+            }
             ongoing.mode = null;
             ongoing.startTouches = null;
             ongoing.startDist = 0;
             ongoing.startAngle = 0;
         } else if (ev.touches.length === 1) {
+            // if user lifts one finger and one remains, switch to drag mode
             ongoing.mode = "drag";
             const touch = ev.touches[0];
             const pizzaRect = pizzaArea.getBoundingClientRect();
@@ -241,29 +257,36 @@ function addTouchGestureHandlers(elem) {
     }, {passive: false});
 }
 
+// --- Utility helpers ---
 function copyTouch(t) {
     return { identifier: t.identifier, clientX: t.clientX, clientY: t.clientY };
 }
+
 function getDistance(t1, t2) {
     const dx = t2.clientX - t1.clientX;
     const dy = t2.clientY - t1.clientY;
     return Math.hypot(dx, dy);
 }
+
 function getAngleDeg(t1, t2) {
     const dx = t2.clientX - t1.clientX;
     const dy = t2.clientY - t1.clientY;
     return Math.atan2(dy, dx) * (180 / Math.PI);
 }
+
 function getMidpoint(t1, t2) {
     return {
         clientX: (t1.clientX + t2.clientX) / 2,
         clientY: (t1.clientY + t2.clientY) / 2
     };
 }
+
+// returns the element center relative to pizzaArea top-left {x,y}
 function getElementCenterInPizza(elem, pizzaRect) {
     const b = elem.getBoundingClientRect();
     const centerX = (b.left - pizzaRect.left) + (b.width / 2);
     const centerY = (b.top - pizzaRect.top) + (b.height / 2);
+    // If element was positioned by left/top as pixel centers, prefer those values:
     if (elem.style.left) {
         const parsedLeft = parseFloat(elem.style.left);
         const parsedTop = parseFloat(elem.style.top);
@@ -272,4 +295,14 @@ function getElementCenterInPizza(elem, pizzaRect) {
         }
     }
     return { x: centerX, y: centerY };
+}
+
+// returns true if the element's visual center (page coordinates) is inside the containerElem
+function isCenterInsideElement(elem, containerElem) {
+    if (!elem || !containerElem) return false;
+    const b = elem.getBoundingClientRect();
+    const centerX = b.left + (b.width / 2);
+    const centerY = b.top + (b.height / 2);
+    const c = containerElem.getBoundingClientRect();
+    return centerX >= c.left && centerX <= c.right && centerY >= c.top && centerY <= c.bottom;
 }
