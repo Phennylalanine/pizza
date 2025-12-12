@@ -1,62 +1,118 @@
-/* Basic styles to position controls below the crust and highlight selected ingredient.
-   Adjust selectors if your markup uses different ids/classes. */
+body {
+  margin: 0;
+  background: #faf8ef;
+  font-family: Arial, sans-serif;
+}
+
+#app {
+  display: flex;
+  height: 100vh;
+}
 
 #pizza-area {
+  flex: 2;
   position: relative;
-  width: 600px; /* adapt to your crust size */
-  margin: 0 auto;
-}
-
-/* Ensure crust is the base layer */
-#crust {
-  display: block;
-  width: 100%;
-  height: auto;
-  pointer-events: none; /* allow clicks through to ingredients */
-}
-
-/* Ingredients should be absolutely positioned within #pizza-area;
-   your existing code may already set left/top styles. */
-.ingredient {
-  position: absolute;
-  transform-origin: center center; /* rotate/scale around center */
-  transition: transform 120ms ease-out; /* smooth visual change */
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-/* Visual indicator for selection */
-.selected-ingredient {
-  outline: 3px solid rgba(255, 165, 0, 0.9); /* orange highlight */
-  outline-offset: 4px;
-  border-radius: 6px;
-}
-
-/* Controls container below the pizza */
-#pizza-controls {
+  background: #f2efe5;
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin: 12px auto 0;
-  width: 100%;
+  align-items: center;
+  border-right: 3px solid #e0d9c9;
 }
 
-/* Buttons using the provided images */
-.icon-btn {
-  background: transparent;
-  border: none;
-  padding: 6px;
-  cursor: pointer;
-  border-radius: 6px;
-}
-.icon-btn img {
-  display: block;
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
+#pizza-base {
+  width: 70%;
+  max-width: 500px;
   pointer-events: none;
 }
 
-.icon-btn:active {
-  transform: translateY(1px);
+#topping-container img {
+  position: absolute;
+  width: 80px;
+  cursor: move;
+  user-select: none;
+}
+
+#ingredients-panel {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: #fff7e6;
+}
+
+#ingredients-panel h2 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.ingredient img {
+  width: 100px;
+  display: block;
+  margin: 10px auto;
+  cursor: grab;
+  user-select: none;
+  border: 2px solid #f0d8a8;
+  background: white;
+  border-radius: 10px;
+  padding: 5px;
+}
+
+/* Ingredients panel grid layout
+   - Change --ingredient-cols to 2 or 3 (or any number) to control items per row
+   - This keeps the panel's size unchanged and only changes the internal layout
+*/
+
+:root {
+  /* Set default columns here: 2 or 3 */
+  --ingredient-cols: 3;
+  --ingredient-gap: 10px;
+}
+
+/* Basic reset / layout (add or merge with your existing styles) */
+* { box-sizing: border-box; }
+
+#app {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* Keep pizza-area behavior as-is */
+#pizza-area {
+  /* leave existing sizing untouched */
+}
+
+/* Ingredients panel becomes a grid; width is not changed here */
+#ingredients-panel {
+  display: grid;
+  grid-template-columns: repeat(var(--ingredient-cols), 1fr);
+  gap: var(--ingredient-gap);
+  align-items: center;
+  padding: 12px;
+  /* preserve current panel width — don't set width here if you already have one
+     If you need an explicit width, add it, but I left it out so it uses your current layout. */
+}
+
+/* Center each ingredient inside its grid cell */
+.ingredient {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+}
+
+/* Make the images responsive inside each cell and keep them visually consistent */
+.ingredient img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  width: 72px;          /* tweak this to increase/decrease image size */
+  object-fit: contain;
+  cursor: grab;
+  user-select: none;
+}
+
+/* smaller screens: reduce columns so things remain usable */
+@media (max-width: 480px) {
+  :root { --ingredient-cols: 2; }
+  .ingredient img { width: 56px; }
 }
