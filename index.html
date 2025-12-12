@@ -1,38 +1,62 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pizza Builder</title>
-  <link rel="stylesheet" href="css/styles.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pizza Builder</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main>
-    <!-- Example crust/container. If your project uses different element ids, adapt below. -->
-    <div id="pizza-area">
-      <img id="crust" src="assets/crust.png" alt="Pizza crust">
 
-      <!-- Example ingredients (these may already exist in your project).
-           They must have class="ingredient" and be positioned over the crust.
-           Keep your existing ingredient elements; this is an example. -->
-      <!-- <img class="ingredient" src="assets/pepperoni.png" style="left:100px;top:120px"> -->
+<div id="app">
+  <div id="pizza-area">
+    <img id="pizza-base" src="images/pizza base.jpg" alt="Pizza Base" />
+    <div id="topping-container"></div>
+  </div>
 
+  <div id="ingredients-panel">
+    <h2>Ingredients</h2>
+
+     <div class="ingredient">
+      <img src="images/tomato.png" draggable="true" data-name="tomato" />
     </div>
 
-    <!-- Controls placed below crust (images provided in the repo) -->
-    <div id="pizza-controls" aria-label="Pizza controls">
-      <button id="rotate-btn" class="icon-btn" title="Rotate selected ingredient">
-        <img src="assets/rotate.jpg" alt="Rotate">
-      </button>
-      <button id="bigger-btn" class="icon-btn" title="Increase size of selected ingredient">
-        <img src="assets/bigger.png" alt="Bigger">
-      </button>
-      <button id="smaller-btn" class="icon-btn" title="Decrease size of selected ingredient">
-        <img src="assets/smaller.png" alt="Smaller">
-      </button>
+     <div class="ingredient">
+      <img src="images/cheese.png" draggable="true" data-name="cheese" />
     </div>
-  </main>
 
-  <script src="js/ingredient-controls.js"></script>
+        <div class="ingredient">
+      <img src="images/potato.png" draggable="true" data-name="potato" />
+    </div>
+
+    <div class="ingredient">
+      <img src="images/mushroom.png" draggable="true" data-name="mushroom" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/corn.png" draggable="true" data-name="corn" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/carrot.png" draggable="true" data-name="carrot" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/cucumber.png" draggable="true" data-name="cucumber" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/onion.png" draggable="true" data-name="onion" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/mushroom.png" draggable="true" data-name="mushroom" />
+    </div>
+
+    <!-- Add as many as you want -->
+  </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
