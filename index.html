@@ -11,11 +11,15 @@
 <div id="app">
   <div id="pizza-area">
     <img id="pizza-base" src="images/pizza base.jpg" alt="Pizza Base" />
+
+    <!-- 🍅 SAUCE CANVAS -->
+    <canvas id="sauce-canvas"></canvas>
+
     <div id="topping-container"></div>
   </div>
 
   <div id="ingredients-panel">
-    <div class="ingredient"><img src="images/tomato.png" draggable="true"></div>
+    <div class="ingredient"><img src="images/tomato.png" draggable="true" data-type="sauce"></div>
     <div class="ingredient"><img src="images/cheese.png" draggable="true"></div>
     <div class="ingredient"><img src="images/potato.png" draggable="true"></div>
     <div class="ingredient"><img src="images/mushroom.png" draggable="true"></div>
@@ -26,11 +30,10 @@
   </div>
 </div>
 
-<!-- 🔽 CONTROL BUTTONS -->
 <div id="controls">
-  <img id="btn-smaller" src="images/smaller.png" alt="Smaller">
-  <img id="btn-rotate" src="images/rotate.jpg" alt="Rotate">
-  <img id="btn-bigger" src="images/bigger.png" alt="Bigger">
+  <img id="btn-smaller" src="images/smaller.png">
+  <img id="btn-rotate" src="images/rotate.jpg">
+  <img id="btn-bigger" src="images/bigger.png">
 </div>
 
 <script src="app.js"></script>
