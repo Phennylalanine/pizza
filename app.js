@@ -6,94 +6,99 @@ const btnBigger = document.getElementById("btn-bigger");
 const btnSmaller = document.getElementById("btn-smaller");
 const btnRotate = document.getElementById("btn-rotate");
 
+const sauceCanvas = document.getElementById("sauce-canvas");
+const sauceCtx = sauceCanvas.getContext("2d");
+
 let draggedIngredient = null;
 let activeTopping = null;
+let sauceMode = false;
+let painting = false;
 
-/* ============================
-   WHITE → TRANSPARENT FILTER
-============================ */
-function makeWhiteTransparent(src, tolerance = 30, feather = 20, maxSize = 800) {
+const SAUCE_BRUSH_SIZE = 24;
+
+/* =========================
+   SETUP SAUCE CANVAS
+========================= */
+const baseImg = document.getElementById("pizza-base");
+const maskImg = new Image();
+maskImg.src = "images/pizza-mask.png";
+
+baseImg.onload = () => {
+  sauceCanvas.width = baseImg.clientWidth;
+  sauceCanvas.height = baseImg.clientHeight;
+  sauceCanvas.style.position = "absolute";
+  sauceCanvas.style.left = baseImg.offsetLeft + "px";
+  sauceCanvas.style.top = baseImg.offsetTop + "px";
+  sauceCanvas.style.pointerEvents = "none";
+};
+
+/* =========================
+   WHITE → TRANSPARENT
+========================= */
+function makeWhiteTransparent(src, tolerance = 30) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
-
     img.onload = () => {
-      let w = img.width;
-      let h = img.height;
-      const scale = Math.min(1, maxSize / Math.max(w, h));
-      w *= scale;
-      h *= scale;
-
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, w, h);
-
-      try {
-        const imageData = ctx.getImageData(0, 0, w, h);
-        const d = imageData.data;
-
-        for (let i = 0; i < d.length; i += 4) {
-          const r = d[i];
-          const g = d[i + 1];
-          const b = d[i + 2];
-
-          const dist = Math.sqrt(
-            (255 - r) ** 2 +
-            (255 - g) ** 2 +
-            (255 - b) ** 2
-          );
-
-          if (dist < tolerance) {
-            d[i + 3] = 0;
-          } else if (dist < tolerance + feather) {
-            d[i + 3] *= (dist - tolerance) / feather;
-          }
+      const c = document.createElement("canvas");
+      c.width = img.width;
+      c.height = img.height;
+      const ctx = c.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, c.width, c.height);
+      for (let i = 0; i < data.data.length; i += 4) {
+        const r = data.data[i];
+        const g = data.data[i + 1];
+        const b = data.data[i + 2];
+        if (Math.abs(255 - r) < tolerance &&
+            Math.abs(255 - g) < tolerance &&
+            Math.abs(255 - b) < tolerance) {
+          data.data[i + 3] = 0;
         }
-
-        ctx.putImageData(imageData, 0, 0);
-        resolve(canvas.toDataURL());
-      } catch (err) {
-        reject(err);
       }
+      ctx.putImageData(data, 0, 0);
+      resolve(c.toDataURL());
     };
-
     img.onerror = reject;
     img.src = src;
   });
 }
 
-/* ============================
+/* =========================
    INGREDIENT DRAG
-============================ */
+========================= */
 document.querySelectorAll("#ingredients-panel img").forEach(img => {
   img.addEventListener("dragstart", e => {
     draggedIngredient = e.target;
+    sauceMode = img.dataset.type === "sauce";
+    sauceCanvas.style.pointerEvents = sauceMode ? "auto" : "none";
   });
 });
 
-/* ============================
-   DROP ON PIZZA
-============================ */
+/* =========================
+   DROP HANDLER
+========================= */
 pizzaArea.addEventListener("dragover", e => e.preventDefault());
 
-pizzaArea.addEventListener("drop", async (e) => {
+pizzaArea.addEventListener("drop", async e => {
   if (!draggedIngredient) return;
+
+  if (sauceMode) {
+    draggedIngredient = null;
+    return;
+  }
 
   const newTopping = document.createElement("img");
   newTopping.className = "placed-topping";
 
   const rect = pizzaArea.getBoundingClientRect();
-  newTopping.style.position = "absolute";
   newTopping.style.left = (e.clientX - rect.left) + "px";
   newTopping.style.top = (e.clientY - rect.top) + "px";
+  newTopping.style.position = "absolute";
   newTopping.style.transform = "translate(-50%, -50%) scale(1) rotate(0deg)";
-
   newTopping.dataset.scale = "1";
   newTopping.dataset.rotation = "0";
 
-  /* 🔥 AUTO REMOVE WHITE BACKGROUND */
   try {
     newTopping.src = await makeWhiteTransparent(draggedIngredient.src);
   } catch {
@@ -102,7 +107,6 @@ pizzaArea.addEventListener("drop", async (e) => {
 
   newTopping.addEventListener("mousedown", selectTopping);
   newTopping.addEventListener("touchstart", selectTopping);
-
   newTopping.addEventListener("mousedown", startDrag);
   newTopping.addEventListener("touchstart", startTouchDrag, { passive: false });
 
@@ -110,9 +114,40 @@ pizzaArea.addEventListener("drop", async (e) => {
   draggedIngredient = null;
 });
 
-/* ============================
-   SELECT / DESELECT
-============================ */
+/* =========================
+   SAUCE PAINTING
+========================= */
+sauceCanvas.addEventListener("pointerdown", e => {
+  if (!sauceMode) return;
+  painting = true;
+  paintSauce(e);
+});
+
+sauceCanvas.addEventListener("pointermove", e => {
+  if (painting) paintSauce(e);
+});
+
+window.addEventListener("pointerup", () => painting = false);
+
+function paintSauce(e) {
+  const rect = sauceCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  sauceCtx.globalCompositeOperation = "source-over";
+  sauceCtx.fillStyle = "rgba(200,0,0,0.5)";
+  sauceCtx.beginPath();
+  sauceCtx.arc(x, y, SAUCE_BRUSH_SIZE, 0, Math.PI * 2);
+  sauceCtx.fill();
+
+  sauceCtx.globalCompositeOperation = "destination-in";
+  sauceCtx.drawImage(maskImg, 0, 0, sauceCanvas.width, sauceCanvas.height);
+  sauceCtx.globalCompositeOperation = "source-over";
+}
+
+/* =========================
+   TOPPING SELECTION
+========================= */
 function selectTopping(e) {
   e.stopPropagation();
   document.querySelectorAll(".placed-topping").forEach(t => t.classList.remove("active"));
@@ -120,114 +155,76 @@ function selectTopping(e) {
   activeTopping.classList.add("active");
 }
 
-pizzaArea.addEventListener("mousedown", clearSelection);
-pizzaArea.addEventListener("touchstart", clearSelection);
+pizzaArea.addEventListener("mousedown", () => activeTopping = null);
 
-function clearSelection() {
-  document.querySelectorAll(".placed-topping").forEach(t => t.classList.remove("active"));
-  activeTopping = null;
-}
-
-/* ============================
+/* =========================
    BUTTON CONTROLS
-============================ */
-btnBigger.onclick = () => resizeTopping(1.1);
-btnSmaller.onclick = () => resizeTopping(0.9);
-btnRotate.onclick = () => rotateTopping();
+========================= */
+btnBigger.onclick = () => resize(1.1);
+btnSmaller.onclick = () => resize(0.9);
+btnRotate.onclick = () => rotate();
 
-function resizeTopping(factor) {
+function resize(f) {
   if (!activeTopping) return;
-  let scale = parseFloat(activeTopping.dataset.scale);
-  scale = Math.max(0.5, Math.min(3, scale * factor));
-  activeTopping.dataset.scale = scale;
-  updateTransform(activeTopping);
+  let s = parseFloat(activeTopping.dataset.scale);
+  s = Math.max(0.5, Math.min(3, s * f));
+  activeTopping.dataset.scale = s;
+  updateTransform();
 }
 
-function rotateTopping() {
+function rotate() {
   if (!activeTopping) return;
-  let rotation = parseFloat(activeTopping.dataset.rotation);
-  rotation += 15;
-  activeTopping.dataset.rotation = rotation;
-  updateTransform(activeTopping);
+  activeTopping.dataset.rotation = parseFloat(activeTopping.dataset.rotation) + 15;
+  updateTransform();
 }
 
-function updateTransform(elem) {
-  elem.style.transform =
-    `translate(-50%, -50%) scale(${elem.dataset.scale}) rotate(${elem.dataset.rotation}deg)`;
+function updateTransform() {
+  activeTopping.style.transform =
+    `translate(-50%, -50%) scale(${activeTopping.dataset.scale}) rotate(${activeTopping.dataset.rotation}deg)`;
 }
 
-/* ============================
-   MOUSE DRAG
-============================ */
-let offsetX = 0;
-let offsetY = 0;
+/* =========================
+   DRAGGING
+========================= */
+let offsetX = 0, offsetY = 0;
 
 function startDrag(e) {
   selectTopping(e);
-
-  const rect = pizzaArea.getBoundingClientRect();
-  offsetX = e.clientX - (rect.left + parseFloat(activeTopping.style.left));
-  offsetY = e.clientY - (rect.top + parseFloat(activeTopping.style.top));
-
+  const r = pizzaArea.getBoundingClientRect();
+  offsetX = e.clientX - (r.left + parseFloat(activeTopping.style.left));
+  offsetY = e.clientY - (r.top + parseFloat(activeTopping.style.top));
   document.addEventListener("mousemove", drag);
   document.addEventListener("mouseup", stopDrag);
 }
 
 function drag(e) {
   if (!activeTopping) return;
-  const rect = pizzaArea.getBoundingClientRect();
-  activeTopping.style.left = (e.clientX - rect.left - offsetX) + "px";
-  activeTopping.style.top = (e.clientY - rect.top - offsetY) + "px";
+  const r = pizzaArea.getBoundingClientRect();
+  activeTopping.style.left = (e.clientX - r.left - offsetX) + "px";
+  activeTopping.style.top = (e.clientY - r.top - offsetY) + "px";
 }
 
 function stopDrag() {
-  deleteIfInPanel();
   document.removeEventListener("mousemove", drag);
   document.removeEventListener("mouseup", stopDrag);
 }
 
-/* ============================
-   TOUCH DRAG
-============================ */
 function startTouchDrag(e) {
   e.preventDefault();
   selectTopping(e);
-
-  const touch = e.touches[0];
-  const rect = pizzaArea.getBoundingClientRect();
-  offsetX = touch.clientX - (rect.left + parseFloat(activeTopping.style.left));
-  offsetY = touch.clientY - (rect.top + parseFloat(activeTopping.style.top));
-
+  const t = e.touches[0];
+  const r = pizzaArea.getBoundingClientRect();
+  offsetX = t.clientX - (r.left + parseFloat(activeTopping.style.left));
+  offsetY = t.clientY - (r.top + parseFloat(activeTopping.style.top));
   document.addEventListener("touchmove", touchDrag, { passive: false });
-  document.addEventListener("touchend", stopTouchDrag);
+  document.addEventListener("touchend", () => {
+    document.removeEventListener("touchmove", touchDrag);
+  });
 }
 
 function touchDrag(e) {
-  if (!activeTopping) return;
-  const touch = e.touches[0];
-  const rect = pizzaArea.getBoundingClientRect();
-  activeTopping.style.left = (touch.clientX - rect.left - offsetX) + "px";
-  activeTopping.style.top = (touch.clientY - rect.top - offsetY) + "px";
-}
-
-function stopTouchDrag() {
-  deleteIfInPanel();
-  document.removeEventListener("touchmove", touchDrag);
-  document.removeEventListener("touchend", stopTouchDrag);
-}
-
-/* ============================
-   DELETE IF DRAGGED BACK
-============================ */
-function deleteIfInPanel() {
-  if (!activeTopping) return;
-  const b = activeTopping.getBoundingClientRect();
-  const c = ingredientsPanel.getBoundingClientRect();
-  const cx = b.left + b.width / 2;
-  const cy = b.top + b.height / 2;
-
-  if (cx >= c.left && cx <= c.right && cy >= c.top && cy <= c.bottom) {
-    activeTopping.remove();
-    activeTopping = null;
-  }
+  const t = e.touches[0];
+  const r = pizzaArea.getBoundingClientRect();
+  activeTopping.style.left = (t.clientX - r.left - offsetX) + "px";
+  activeTopping.style.top = (t.clientY - r.top - offsetY) + "px";
 }
