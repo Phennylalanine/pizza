@@ -24,20 +24,30 @@ const SAUCE_BRUSH_SIZE = 24;
 const undoStack = [];
 
 /* =========================
-   SETUP CANVAS
+   SETUP CANVAS (FIXED)
 ========================= */
 const baseImg = document.getElementById("pizza-base");
 const maskImg = new Image();
 maskImg.src = "images/pizza-mask.png";
 
-baseImg.onload = () => {
-  sauceCanvas.width = baseImg.clientWidth;
-  sauceCanvas.height = baseImg.clientHeight;
+function resizeSauceCanvas() {
+  const rect = baseImg.getBoundingClientRect();
+
+  sauceCanvas.width = rect.width;
+  sauceCanvas.height = rect.height;
+
+  sauceCanvas.style.width = rect.width + "px";
+  sauceCanvas.style.height = rect.height + "px";
+
   sauceCanvas.style.position = "absolute";
   sauceCanvas.style.left = baseImg.offsetLeft + "px";
   sauceCanvas.style.top = baseImg.offsetTop + "px";
   sauceCanvas.style.pointerEvents = "none";
-};
+}
+
+baseImg.onload = resizeSauceCanvas;
+window.addEventListener("resize", resizeSauceCanvas);
+
 
 /* =========================
    WHITE → TRANSPARENT
