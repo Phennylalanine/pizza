@@ -27,8 +27,6 @@ const undoStack = [];
    SETUP CANVAS (FIXED)
 ========================= */
 const baseImg = document.getElementById("pizza-base");
-const maskImg = new Image();
-maskImg.src = "images/pizza-mask.png";
 
 function resizeSauceCanvas() {
   const rect = baseImg.getBoundingClientRect();
@@ -43,11 +41,40 @@ function resizeSauceCanvas() {
   sauceCanvas.style.left = baseImg.offsetLeft + "px";
   sauceCanvas.style.top = baseImg.offsetTop + "px";
   sauceCanvas.style.pointerEvents = "none";
+  sauceCanvas.style.zIndex = 2;
 }
 
 baseImg.onload = resizeSauceCanvas;
 window.addEventListener("resize", resizeSauceCanvas);
 
+/* =========================
+   PIZZA PIXEL MASK (NO IMAGE)
+========================= */
+const pizzaMaskCanvas = document.createElement("canvas");
+const pizzaMaskCtx = pizzaMaskCanvas.getContext("2d");
+
+function buildPizzaMask() {
+  pizzaMaskCanvas.width = sauceCanvas.width;
+  pizzaMaskCanvas.height = sauceCanvas.height;
+  pizzaMaskCtx.clearRect(0, 0, pizzaMaskCanvas.width, pizzaMaskCanvas.height);
+  pizzaMaskCtx.drawImage(baseImg, 0, 0, pizzaMaskCanvas.width, pizzaMaskCanvas.height);
+}
+
+baseImg.onload = () => {
+  resizeSauceCanvas();
+  buildPizzaMask();
+};
+window.addEventListener("resize", buildPizzaMask);
+
+function isPaintAllowed(x, y) {
+  const pixel = pizzaMaskCtx.getImageData(x, y, 1, 1).data;
+  const [r, g, b, a] = pixel;
+
+  if (a === 0) return false;            // transparent
+  if (r > 240 && g > 240 && b > 240) return false; // white / background
+
+  return true;
+}
 
 /* =========================
    WHITE → TRANSPARENT
@@ -99,7 +126,6 @@ pizzaArea.addEventListener("drop", async e => {
 
   const isSauce = draggedIngredient.dataset.type === "sauce";
 
-  /* 🍅 SAUCE TOOL ACTIVATION */
   if (isSauce) {
     sauceMode = true;
     sauceCanvas.style.pointerEvents = "auto";
@@ -107,7 +133,6 @@ pizzaArea.addEventListener("drop", async e => {
     return;
   }
 
-  /* 🍄 NORMAL TOPPING */
   sauceMode = false;
   sauceCanvas.style.pointerEvents = "none";
 
@@ -118,6 +143,7 @@ pizzaArea.addEventListener("drop", async e => {
   newTopping.style.left = (e.clientX - rect.left) + "px";
   newTopping.style.top = (e.clientY - rect.top) + "px";
   newTopping.style.position = "absolute";
+  newTopping.style.zIndex = 5;
   newTopping.style.transform = "translate(-50%, -50%) scale(1) rotate(0deg)";
   newTopping.dataset.scale = "1";
   newTopping.dataset.rotation = "0";
@@ -135,6 +161,7 @@ pizzaArea.addEventListener("drop", async e => {
 
   toppingContainer.appendChild(newTopping);
   undoStack.push({ type: "topping", element: newTopping });
+
   draggedIngredient = null;
 });
 
@@ -144,10 +171,12 @@ pizzaArea.addEventListener("drop", async e => {
 sauceCanvas.addEventListener("pointerdown", e => {
   if (!sauceMode) return;
   painting = true;
+
   undoStack.push({
     type: "sauce",
     snapshot: sauceCtx.getImageData(0, 0, sauceCanvas.width, sauceCanvas.height)
   });
+
   paintSauce(e);
 });
 
@@ -159,17 +188,15 @@ window.addEventListener("pointerup", () => painting = false);
 
 function paintSauce(e) {
   const rect = sauceCanvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const x = Math.floor(e.clientX - rect.left);
+  const y = Math.floor(e.clientY - rect.top);
+
+  if (!isPaintAllowed(x, y)) return;
 
   sauceCtx.fillStyle = "rgba(200,0,0,0.5)";
   sauceCtx.beginPath();
   sauceCtx.arc(x, y, SAUCE_BRUSH_SIZE, 0, Math.PI * 2);
   sauceCtx.fill();
-
-  sauceCtx.globalCompositeOperation = "destination-in";
-  sauceCtx.drawImage(maskImg, 0, 0, sauceCanvas.width, sauceCanvas.height);
-  sauceCtx.globalCompositeOperation = "source-over";
 }
 
 /* =========================
