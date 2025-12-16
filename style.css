@@ -136,3 +136,17 @@ body {
 .placed-topping.active {
   outline: 3px dashed #ff9800;
 }
+#pizza-area {
+  position: relative;
+}
+
+#pizza-base {
+  position: relative;
+  z-index: 1;
+}
+
+#sauce-canvas {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
