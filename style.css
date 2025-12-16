@@ -150,3 +150,10 @@ body {
   z-index: 2;
   pointer-events: none;
 }
+
+#topping-container {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
