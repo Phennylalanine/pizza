@@ -36,6 +36,7 @@ baseImg.onload = () => {
   sauceCanvas.style.position = "absolute";
   sauceCanvas.style.left = baseImg.offsetLeft + "px";
   sauceCanvas.style.top = baseImg.offsetTop + "px";
+  sauceCanvas.style.pointerEvents = "none";
 };
 
 /* =========================
@@ -75,8 +76,6 @@ function makeWhiteTransparent(src, tolerance = 30) {
 document.querySelectorAll("#ingredients-panel img").forEach(img => {
   img.addEventListener("dragstart", e => {
     draggedIngredient = e.target;
-    sauceMode = img.dataset.type === "sauce";
-    sauceCanvas.style.pointerEvents = sauceMode ? "auto" : "none";
   });
 });
 
@@ -88,10 +87,19 @@ pizzaArea.addEventListener("dragover", e => e.preventDefault());
 pizzaArea.addEventListener("drop", async e => {
   if (!draggedIngredient) return;
 
-  if (sauceMode) {
+  const isSauce = draggedIngredient.dataset.type === "sauce";
+
+  /* 🍅 SAUCE TOOL ACTIVATION */
+  if (isSauce) {
+    sauceMode = true;
+    sauceCanvas.style.pointerEvents = "auto";
     draggedIngredient = null;
     return;
   }
+
+  /* 🍄 NORMAL TOPPING */
+  sauceMode = false;
+  sauceCanvas.style.pointerEvents = "none";
 
   const newTopping = document.createElement("img");
   newTopping.className = "placed-topping";
@@ -116,7 +124,6 @@ pizzaArea.addEventListener("drop", async e => {
   newTopping.addEventListener("touchstart", startTouchDrag, { passive: false });
 
   toppingContainer.appendChild(newTopping);
-
   undoStack.push({ type: "topping", element: newTopping });
   draggedIngredient = null;
 });
@@ -179,6 +186,9 @@ btnReset.onclick = () => {
    TOPPING SELECTION
 ========================= */
 function selectTopping(e) {
+  sauceMode = false;
+  sauceCanvas.style.pointerEvents = "none";
+
   e.stopPropagation();
   document.querySelectorAll(".placed-topping").forEach(t => t.classList.remove("active"));
   activeTopping = e.currentTarget;
