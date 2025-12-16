@@ -11,32 +11,46 @@
 <div id="app">
   <div id="pizza-area">
     <img id="pizza-base" src="images/pizza base.jpg" alt="Pizza Base" />
-
-    <!-- 🍅 SAUCE CANVAS -->
-    <canvas id="sauce-canvas"></canvas>
-
     <div id="topping-container"></div>
   </div>
 
   <div id="ingredients-panel">
-    <div class="ingredient"><img src="images/tomato.png" draggable="true" data-type="sauce"></div>
-    <div class="ingredient"><img src="images/cheese.png" draggable="true"></div>
-    <div class="ingredient"><img src="images/potato.png" draggable="true"></div>
-    <div class="ingredient"><img src="images/mushroom.png" draggable="true"></div>
-    <div class="ingredient"><img src="images/corn.png" draggable="true"></div>
-    <div class="ingredient"><img src="images/carrot.png" draggable="true"></div>
-    <div class="ingredient"><img src="images/cucumber.png" draggable="true"></div>
-    <div class="ingredient"><img src="images/onion.png" draggable="true"></div>
-  </div>
-</div>
+    <h2>Ingredients</h2>
 
-<div id="controls">
-  <img id="btn-undo" src="images/undo.png" alt="Undo">
-  <img id="btn-reset" src="images/reset.png" alt="Reset">
-  
-  <img id="btn-smaller" src="images/smaller.png">
-  <img id="btn-rotate" src="images/rotate.jpg">
-  <img id="btn-bigger" src="images/bigger.png">
+     <div class="ingredient">
+      <img src="images/tomato.png" draggable="true" data-name="tomato" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/cheese.png" draggable="true" data-name="cheese" />
+    </div>
+
+        <div class="ingredient">
+      <img src="images/potato.png" draggable="true" data-name="potato" />
+    </div>
+
+    <div class="ingredient">
+      <img src="images/mushroom.png" draggable="true" data-name="mushroom" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/corn.png" draggable="true" data-name="corn" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/carrot.png" draggable="true" data-name="carrot" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/cucumber.png" draggable="true" data-name="cucumber" />
+    </div>
+
+     <div class="ingredient">
+      <img src="images/onion.png" draggable="true" data-name="onion" />
+    </div>
+
+       <!-- Add as many as you want -->
+  </div>
 </div>
 
 <script src="app.js"></script>
